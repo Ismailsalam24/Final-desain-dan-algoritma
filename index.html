@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pencarian Surah Al-Qur'an - String Matching</title>
+    <style>
+        /* Reset dan Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background: #f0f8ff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(to right, #1a5fb4, #26a269);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: flex;
+            padding: 25px;
+            gap: 25px;
+        }
+        
+        .search-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .results-section {
+            flex: 2;
+            min-width: 300px;
+        }
+        
+        /* Search Box */
+        .input-group {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 0 15px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+        }
+        
+        /* Algorithm Selector */
+        .algorithm-selector h3 {
+            color: #1a5fb4;
+            margin-bottom: 15px;
+        }
+        
+        .algo-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .algo-btn {
+            padding: 12px;
+            background: #e8f4fd;
+            border: 2px solid #c1e0f7;
+            border-radius: 8px;
+            color: #1a5fb4;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+        }
+        
+        .algo-btn:hover {
+            background: #d4eafb;
+        }
+        
+        .algo-btn.active {
+            background: #1a5fb4;
+            color: white;
+            border-color: #1a5fb4;
+        }
+        
+        /* Search Button */
+        .search-btn {
+            width: 100%;
+            padding: 15px;
+            background: #1a5fb4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 25px;
+        }
+        
+        .search-btn:hover {
+            background: #0d4a9e;
+        }
+        
+        /* Stats */
+        .stats {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #1a5fb4;
+        }
+        
+        .stats h3 {
+            color: #1a5fb4;
+            margin-bottom: 15px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Info Box */
+        .info-box {
+            background: #f0f9ff;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #c1e0f7;
+        }
+        
+        .info-box h3 {
+            color: #1a5fb4;
+            margin-bottom: 10px;
+        }
+        
+        /* Results */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .results-header h2 {
+            color: #1a5fb4;
+        }
+        
+        .sort-options select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+        }
+        
+        /* Surah Item */
+        .surah-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #1a5fb4;
+        }
+        
+        .surah-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .surah-number {
+            background: #1a5fb4;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .surah-name-arabic {
+            text-align: right;
+            font-size: 1.5rem;
+            color: #1a5fb4;
+            margin-bottom: 5px;
+            font-family: 'Traditional Arabic', serif;
+        }
+        
+        .surah-name-latin {
+            font-size: 1.2rem;
+            color: #222;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .surah-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .surah-info span {
+            margin-right: 15px;
+        }
+        
+        .surah-desc {
+            color: #444;
+            line-height: 1.6;
+        }
+        
+        .highlight {
+            background: #fff9c4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8fafc;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .copyright {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .search-section, .results-section {
+                width: 100%;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📖 Pencarian Surah Al-Qur'an</h1>
+            <p class="subtitle">Implementasi Algoritma String Matching untuk Pencarian Efisien</p>
+        </header>
+
+        <div class="main-content">
+            <div class="search-section">
+                <div class="search-box">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" placeholder="Cari surah (nama, arti)...">
+                    </div>
+                    
+                    <div class="algorithm-selector">
+                        <h3>⚙️ Pilih Algoritma:</h3>
+                        <div class="algo-buttons">
+                            <button class="algo-btn active" data-algo="boyer-moore">Boyer-Moore</button>
+                            <button class="algo-btn" data-algo="kmp">Knuth-Morris-Pratt</button>
+                            <button class="algo-btn" data-algo="simple">Simple Search</button>
+                        </div>
+                    </div>
+                    
+                    <button id="searchBtn" class="search-btn">
+                        🔍 Cari Surah
+                    </button>
+                </div>
+
+                <div class="stats">
+                    <h3>📊 Statistik</h3>
+                    <div class="stat-item">
+                        <span>Algoritma:</span>
+                        <span id="currentAlgo">Boyer-Moore</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Waktu:</span>
+                        <span id="searchTime">0 ms</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Hasil:</span>
+                        <span id="resultCount">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Total Surah:</span>
+                        <span id="totalSurah">10</span>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>ℹ️ Info Algoritma</h3>
+                    <p id="algoInfo">
+                        <strong>Boyer-Moore:</strong> Algoritma pencarian string yang efisien dengan kompleksitas O(n/m) terbaik.
+                    </p>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="results-header">
+                    <h2>📋 Hasil Pencarian</h2>
+                    <div class="sort-options">
+                        <select id="sortSelect">
+                            <option value="relevance">Relevansi</option>
+                            <option value="id">No. Surah</option>
+                            <option value="name">Nama</option>
+                            <option value="verses">Jumlah Ayat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="results-container" id="resultsContainer">
+                    <!-- Hasil pencarian akan muncul di sini -->
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Penerapan Algoritma String Matching dalam Pencarian Surah Al-Qur'an Berbasis Digital</p>
+            <p class="copyright">© 2026 - Sistem Pencarian Al-Qur'an</p>
+        </footer>
+    </div>
+
+    <script>
+        // ==================== DATA SURAH ====================
+        const surahData = [
+ 
+  {
+    "id": 1,
+    "name": "Al-Fatihah",
+    "arabic": "الفاتحة",
+    "verses": 7,
+    "meaning": "Pembukaan",
+    "place": "Mekkah",
+    "description": "Surah pertama dalam Al-Qur'an yang menjadi inti ajaran Islam dan dibaca di setiap rakaat shalat."
+  },
+  {
+    "id": 2,
+    "name": "Al-Baqarah",
+    "arabic": "البقرة",
+    "verses": 286,
+    "meaning": "Sapi Betina",
+    "place": "Madinah",
+    "description": "Surah terpanjang dalam Al-Qur'an yang membahas hukum, akidah, dan kisah umat terdahulu."
+  },
+  {
+    "id": 3,
+    "name": "Ali Imran",
+    "arabic": "آل عمران",
+    "verses": 200,
+    "meaning": "Keluarga Imran",
+    "place": "Madinah",
+    "description": "Membahas ketauhidan dan kisah keluarga Imran serta pelajaran dari Perang Uhud."
+  },
+  {
+    "id": 4,
+    "name": "An-Nisa",
+    "arabic": "النساء",
+    "verses": 176,
+    "meaning": "Wanita",
+    "place": "Madinah",
+    "description": "Menjelaskan hukum sosial, keluarga, warisan, dan perlindungan terhadap wanita."
+  },
+  {
+    "id": 5,
+    "name": "Al-Ma'idah",
+    "arabic": "المائدة",
+    "verses": 120,
+    "meaning": "Hidangan",
+    "place": "Madinah",
+    "description": "Berisi hukum halal haram, perjanjian, dan kisah Nabi Isa."
+  },
+  {
+    "id": 6,
+    "name": "Al-An'am",
+    "arabic": "الأنعام",
+    "verses": 165,
+    "meaning": "Binatang Ternak",
+    "place": "Mekkah",
+    "description": "Menegaskan tauhid dan menolak syirik."
+  },
+  {
+    "id": 7,
+    "name": "Al-A'raf",
+    "arabic": "الأعراف",
+    "verses": 206,
+    "meaning": "Tempat yang Tinggi",
+    "place": "Mekkah",
+    "description": "Mengisahkan para nabi dan peringatan bagi orang yang mendustakan."
+  },
+  {
+    "id": 8,
+    "name": "Al-Anfal",
+    "arabic": "الأنفال",
+    "verses": 75,
+    "meaning": "Harta Rampasan",
+    "place": "Madinah",
+    "description": "Membahas hukum perang dan peristiwa Perang Badar."
+  },
+  {
+    "id": 9,
+    "name": "At-Taubah",
+    "arabic": "التوبة",
+    "verses": 129,
+    "meaning": "Pengampunan",
+    "place": "Madinah",
+    "description": "Menjelaskan sikap terhadap kaum munafik dan kewajiban jihad."
+  },
+  {
+    "id": 10,
+    "name": "Yunus",
+    "arabic": "يونس",
+    "verses": 109,
+    "meaning": "Yunus",
+    "place": "Mekkah",
+    "description": "Mengisahkan Nabi Yunus dan seruan tauhid."
+  },
+
+  {
+    "id": 11,
+    "name": "Hud",
+    "arabic": "هود",
+    "verses": 123,
+    "meaning": "Hud",
+    "place": "Mekkah",
+    "description": "Kisah para nabi dan keteguhan iman."
+  },
+  {
+    "id": 12,
+    "name": "Yusuf",
+    "arabic": "يوسف",
+    "verses": 111,
+    "meaning": "Yusuf",
+    "place": "Mekkah",
+    "description": "Kisah lengkap Nabi Yusuf penuh hikmah dan kesabaran."
+  },
+  {
+    "id": 13,
+    "name": "Ar-Ra'd",
+    "arabic": "الرعد",
+    "verses": 43,
+    "meaning": "Guruh",
+    "place": "Madinah",
+    "description": "Menjelaskan kekuasaan Allah dan kebenaran wahyu."
+  },
+  {
+    "id": 14,
+    "name": "Ibrahim",
+    "arabic": "إبراهيم",
+    "verses": 52,
+    "meaning": "Ibrahim",
+    "place": "Mekkah",
+    "description": "Doa Nabi Ibrahim dan ajaran tauhid."
+  },
+  {
+    "id": 15,
+    "name": "Al-Hijr",
+    "arabic": "الحجر",
+    "verses": 99,
+    "meaning": "Hijr",
+    "place": "Mekkah",
+    "description": "Menegaskan penjagaan Allah terhadap Al-Qur'an."
+  },
+  {
+    "id": 16,
+    "name": "An-Nahl",
+    "arabic": "النحل",
+    "verses": 128,
+    "meaning": "Lebah",
+    "place": "Mekkah",
+    "description": "Mensyukuri nikmat Allah dan ajaran akhlak."
+  },
+  {
+    "id": 17,
+    "name": "Al-Isra",
+    "arabic": "الإسراء",
+    "verses": 111,
+    "meaning": "Perjalanan Malam",
+    "place": "Mekkah",
+    "description": "Peristiwa Isra Mi'raj dan pedoman hidup."
+  },
+  {
+    "id": 18,
+    "name": "Al-Kahf",
+    "arabic": "الكهف",
+    "verses": 110,
+    "meaning": "Gua",
+    "place": "Mekkah",
+    "description": "Empat kisah utama penuh pelajaran iman."
+  },
+  {
+    "id": 19,
+    "name": "Maryam",
+    "arabic": "مريم",
+    "verses": 98,
+    "meaning": "Maryam",
+    "place": "Mekkah",
+    "description": "Kisah Maryam dan Nabi Isa."
+  },
+  {
+    "id": 20,
+    "name": "Ta-Ha",
+    "arabic": "طه",
+    "verses": 135,
+    "meaning": "Ta-Ha",
+    "place": "Mekkah",
+    "description": "Kisah Nabi Musa dan dakwah tauhid."
+  },
+
+  {
+    "id": 21,
+    "name": "Al-Anbiya",
+    "arabic": "الأنبياء",
+    "verses": 112,
+    "meaning": "Para Nabi",
+    "place": "Mekkah",
+    "description": "Kisah perjuangan para nabi."
+  },
+  {
+    "id": 22,
+    "name": "Al-Hajj",
+    "arabic": "الحج",
+    "verses": 78,
+    "meaning": "Haji",
+    "place": "Madinah",
+    "description": "Hukum ibadah haji dan pengorbanan."
+  },
+  {
+    "id": 23,
+    "name": "Al-Mu'minun",
+    "arabic": "المؤمنون",
+    "verses": 118,
+    "meaning": "Orang Beriman",
+    "place": "Mekkah",
+    "description": "Ciri-ciri orang beriman."
+  },
+  {
+    "id": 24,
+    "name": "An-Nur",
+    "arabic": "النور",
+    "verses": 64,
+    "meaning": "Cahaya",
+    "place": "Madinah",
+    "description": "Hukum sosial dan kesucian diri."
+  },
+  {
+    "id": 25,
+    "name": "Al-Furqan",
+    "arabic": "الفرقان",
+    "verses": 77,
+    "meaning": "Pembeda",
+    "place": "Mekkah",
+    "description": "Pembeda antara hak dan batil."
+  },
+
+  {
+    "id": 26,
+    "name": "Asy-Syu'ara",
+    "arabic": "الشعراء",
+    "verses": 227,
+    "meaning": "Para Penyair",
+    "place": "Mekkah",
+    "description": "Kisah para nabi dan penolakan kaum mereka."
+  },
+  {
+    "id": 27,
+    "name": "An-Naml",
+    "arabic": "النمل",
+    "verses": 93,
+    "meaning": "Semut",
+    "place": "Mekkah",
+    "description": "Kisah Nabi Sulaiman."
+  },
+  {
+    "id": 28,
+    "name": "Al-Qasas",
+    "arabic": "القصص",
+    "verses": 88,
+    "meaning": "Kisah",
+    "place": "Mekkah",
+    "description": "Kisah Nabi Musa."
+  },
+  {
+    "id": 29,
+    "name": "Al-Ankabut",
+    "arabic": "العنكبوت",
+    "verses": 69,
+    "meaning": "Laba-laba",
+    "place": "Mekkah",
+    "description": "Ujian keimanan."
+  },
+  {
+    "id": 30,
+    "name": "Ar-Rum",
+    "arabic": "الروم",
+    "verses": 60,
+    "meaning": "Bangsa Romawi",
+    "place": "Mekkah",
+    "description": "Kemenangan Romawi sebagai tanda kekuasaan Allah."
+  },
+
+  {
+    "id": 31,
+    "name": "Luqman",
+    "arabic": "لقمان",
+    "verses": 34,
+    "meaning": "Luqman",
+    "place": "Mekkah",
+    "description": "Nasihat Luqman kepada anaknya."
+  },
+  {
+    "id": 32,
+    "name": "As-Sajdah",
+    "arabic": "السجدة",
+    "verses": 30,
+    "meaning": "Sujud",
+    "place": "Mekkah",
+    "description": "Kekuasaan Allah dan penciptaan manusia."
+  },
+  {
+    "id": 33,
+    "name": "Al-Ahzab",
+    "arabic": "الأحزاب",
+    "verses": 73,
+    "meaning": "Golongan",
+    "place": "Madinah",
+    "description": "Perang Khandaq dan hukum keluarga Nabi."
+  },
+  {
+    "id": 34,
+    "name": "Saba",
+    "arabic": "سبإ",
+    "verses": 54,
+    "meaning": "Saba",
+    "place": "Mekkah",
+    "description": "Kisah kaum Saba."
+  },
+  {
+    "id": 35,
+    "name": "Fatir",
+    "arabic": "فاطر",
+    "verses": 45,
+    "meaning": "Pencipta",
+    "place": "Mekkah",
+    "description": "Kekuasaan Allah sebagai pencipta."
+  },
+
+  {
+    "id": 36,
+    "name": "Yasin",
+    "arabic": "يس",
+    "verses": 83,
+    "meaning": "Yasin",
+    "place": "Mekkah",
+    "description": "Jantung Al-Qur'an dan peringatan hari akhir."
+  },
+  {
+    "id": 37,
+    "name": "As-Saffat",
+    "arabic": "الصافات",
+    "verses": 182,
+    "meaning": "Barisan",
+    "place": "Mekkah",
+    "description": "Barisan malaikat dan kisah nabi."
+  },
+  {
+    "id": 38,
+    "name": "Sad",
+    "arabic": "ص",
+    "verses": 88,
+    "meaning": "Sad",
+    "place": "Mekkah",
+    "description": "Kisah Nabi Daud dan Sulaiman."
+  },
+  {
+    "id": 39,
+    "name": "Az-Zumar",
+    "arabic": "الزمر",
+    "verses": 75,
+    "meaning": "Rombongan",
+    "place": "Mekkah",
+    "description": "Tauhid dan keikhlasan."
+  },
+  {
+    "id": 40,
+    "name": "Ghafir",
+    "arabic": "غافر",
+    "verses": 85,
+    "meaning": "Yang Mengampuni",
+    "place": "Mekkah",
+    "description": "Ampunan Allah dan kisah kaum terdahulu."
+  },
+
+  {
+    "id": 41,
+    "name": "Fussilat",
+    "arabic": "فصلت",
+    "verses": 54,
+    "meaning": "Yang Dijelaskan",
+    "place": "Mekkah",
+    "description": "Penjelasan ayat-ayat Al-Qur'an."
+  },
+  {
+    "id": 42,
+    "name": "Asy-Syura",
+    "arabic": "الشورى",
+    "verses": 53,
+    "meaning": "Musyawarah",
+    "place": "Mekkah",
+    "description": "Prinsip musyawarah."
+  },
+  {
+    "id": 43,
+    "name": "Az-Zukhruf",
+    "arabic": "الزخرف",
+    "verses": 89,
+    "meaning": "Perhiasan",
+    "place": "Mekkah",
+    "description": "Kehidupan dunia dan akhirat."
+  },
+  {
+    "id": 44,
+    "name": "Ad-Dukhan",
+    "arabic": "الدخان",
+    "verses": 59,
+    "meaning": "Kabut",
+    "place": "Mekkah",
+    "description": "Peringatan azab Allah."
+  },
+  {
+    "id": 45,
+    "name": "Al-Jasiyah",
+    "arabic": "الجاثية",
+    "verses": 37,
+    "meaning": "Yang Berlutut",
+    "place": "Mekkah",
+    "description": "Hari pembalasan."
+  },
+
+  {
+    "id": 46,
+    "name": "Al-Ahqaf",
+    "arabic": "الأحقاف",
+    "verses": 35,
+    "meaning": "Bukit Pasir",
+    "place": "Mekkah",
+    "description": "Kisah kaum Ad."
+  },
+  {
+    "id": 47,
+    "name": "Muhammad",
+    "arabic": "محمد",
+    "verses": 38,
+    "meaning": "Muhammad",
+    "place": "Madinah",
+    "description": "Perjuangan dan jihad."
+  },
+  {
+    "id": 48,
+    "name": "Al-Fath",
+    "arabic": "الفتح",
+    "verses": 29,
+    "meaning": "Kemenangan",
+    "place": "Madinah",
+    "description": "Perjanjian Hudaibiyah."
+  },
+  {
+    "id": 49,
+    "name": "Al-Hujurat",
+    "arabic": "الحجرات",
+    "verses": 18,
+    "meaning": "Kamar",
+    "place": "Madinah",
+    "description": "Etika sosial dan persaudaraan."
+  },
+  {
+    "id": 50,
+    "name": "Qaf",
+    "arabic": "ق",
+    "verses": 45,
+    "meaning": "Qaf",
+    "place": "Mekkah",
+    "description": "Kebangkitan dan hari akhir."
+  },
+
+            {
+                "id": 51,
+                "name": "Yasin",
+                "arabic": "يس",
+                "verses": 83,
+                "meaning": "Ya Sin",
+                "place": "Mekkah",  
+                "description": "Surah yang dikenal sebagai jantung Al-Qur'an, membahas tanda-tanda kekuasaan Allah dan hari kebangkitan."
+            }
+        ];
+
+        // ==================== ALGORITMA STRING MATCHING ====================
+        
+        // Algoritma Boyer-Moore
+        function boyerMooreSearch(text, pattern) {
+            if (!pattern || !text) return false;
+            
+            const textLower = text.toLowerCase();
+            const patternLower = pattern.toLowerCase();
+            const n = textLower.length;
+            const m = patternLower.length;
+            
+            if (m === 0 || m > n) return false;
+            
+            // Bad character heuristic
+            const badChar = {};
+            for (let i = 0; i < m; i++) {
+                badChar[patternLower[i]] = i;
+            }
+            
+            let s = 0; // shift
+            while (s <= (n - m)) {
+                let j = m - 1;
+                
+                // Cocokkan dari kanan ke kiri
+                while (j >= 0 && patternLower[j] === textLower[s + j]) {
+                    j--;
+                }
+                
+                if (j < 0) {
+                    return true;
+                } else {
+                    const char = textLower[s + j];
+                    s += Math.max(1, j - (badChar[char] || -1));
+                }
+            }
+            
+            return false;
+        }
+        
+        // Algoritma Knuth-Morris-Pratt (KMP)
+        function kmpSearch(text, pattern) {
+            if (!pattern || !text) return false;
+            
+            const textLower = text.toLowerCase();
+            const patternLower = pattern.toLowerCase();
+            const n = textLower.length;
+            const m = patternLower.length;
+            
+            if (m === 0) return false;
+            
+            // Build LPS (Longest Prefix Suffix) array
+            const lps = new Array(m).fill(0);
+            let len = 0;
+            let i = 1;
+            
+            while (i < m) {
+                if (patternLower[i] === patternLower[len]) {
+                    len++;
+                    lps[i] = len;
+                    i++;
+                } else {
+                    if (len !== 0) {
+                        len = lps[len - 1];
+                    } else {
+                        lps[i] = 0;
+                        i++;
+                    }
+                }
+            }
+            
+            // Search
+            i = 0;
+            let j = 0;
+            
+            while (i < n) {
+                if (patternLower[j] === textLower[i]) {
+                    i++;
+                    j++;
+                }
+                
+                if (j === m) {
+                    return true;
+                } else if (i < n && patternLower[j] !== textLower[i]) {
+                    if (j !== 0) {
+                        j = lps[j - 1];
+                    } else {
+                        i++;
+                    }
+                }
+            }
+            
+            return false;
+        }
+        
+        // Simple Search
+        function simpleSearch(text, pattern) {
+            if (!pattern || !text) return false;
+            return text.toLowerCase().includes(pattern.toLowerCase());
+        }
+
+        // ==================== FRONTEND LOGIC ====================
+        
+        // Variabel global
+        let currentAlgorithm = 'boyer-moore';
+        
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const algoButtons = document.querySelectorAll('.algo-btn');
+        const currentAlgoElement = document.getElementById('currentAlgo');
+        const searchTimeElement = document.getElementById('searchTime');
+        const resultCountElement = document.getElementById('resultCount');
+        const algoInfoElement = document.getElementById('algoInfo');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const totalSurahElement = document.getElementById('totalSurah');
+        
+        // Info algoritma
+        const algorithmInfo = {
+            'boyer-moore': '<strong>Boyer-Moore:</strong> Algoritma pencarian string yang efisien dengan kompleksitas O(n/m) terbaik.',
+            'kmp': '<strong>Knuth-Morris-Pratt:</strong> Menggunakan tabel failure function untuk menghindari pemeriksaan ulang karakter.',
+            'simple': '<strong>Simple Search:</strong> Pencarian linear sederhana dengan kompleksitas O(n*m).'
+        };
+        
+        // Inisialisasi
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tampilkan semua surah saat pertama kali
+            displayAllSurahs();
+            totalSurahElement.textContent = surahData.length;
+            
+            // Event untuk tombol algoritma
+            algoButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Hapus active dari semua button
+                    algoButtons.forEach(b => b.classList.remove('active'));
+                    // Tambah active ke button yang diklik
+                    btn.classList.add('active');
+                    
+                    // Update algoritma
+                    currentAlgorithm = btn.dataset.algo;
+                    currentAlgoElement.textContent = getAlgorithmName(currentAlgorithm);
+                    algoInfoElement.innerHTML = algorithmInfo[currentAlgorithm];
+                    
+                    // Jika ada input, lakukan pencarian ulang
+                    if (searchInput.value.trim()) {
+                        performSearch();
+                    }
+                });
+            });
+            
+            // Event untuk tombol search
+            searchBtn.addEventListener('click', performSearch);
+            
+            // Event untuk Enter di input
+            searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // Event untuk sorting
+            document.getElementById('sortSelect').addEventListener('change', performSearch);
+        });
+        
+        // Fungsi untuk mendapatkan nama algoritma
+        function getAlgorithmName(algo) {
+            switch(algo) {
+                case 'boyer-moore': return 'Boyer-Moore';
+                case 'kmp': return 'Knuth-Morris-Pratt';
+                case 'simple': return 'Simple Search';
+                default: return 'Boyer-Moore';
+            }
+        }
+        
+        // Fungsi utama pencarian
+        function performSearch() {
+            const query = searchInput.value.trim();
+            const startTime = performance.now();
+            
+            if (!query) {
+                displayAllSurahs();
+                searchTimeElement.textContent = '0 ms';
+                resultCountElement.textContent = `${surahData.length} surah`;
+                return;
+            }
+            
+            let results;
+            
+            // Pilih algoritma yang digunakan
+            let searchFunction;
+            switch(currentAlgorithm) {
+                case 'boyer-moore':
+                    searchFunction = boyerMooreSearch;
+                    break;
+                case 'kmp':
+                    searchFunction = kmpSearch;
+                    break;
+                case 'simple':
+                    searchFunction = simpleSearch;
+                    break;
+                default:
+                    searchFunction = boyerMooreSearch;
+            }
+            
+            // Lakukan pencarian
+            results = surahData.filter(surah => {
+                const searchText = `${surah.name} ${surah.arabic} ${surah.meaning} ${surah.description} ${surah.place}`;
+                return searchFunction(searchText, query);
+            });
+            
+            // Hitung waktu pencarian
+            const endTime = performance.now();
+            const searchTime = Math.round(endTime - startTime);
+            
+            // Update statistik
+            searchTimeElement.textContent = `${searchTime} ms`;
+            resultCountElement.textContent = `${results.length} surah`;
+            
+            // Tampilkan hasil
+            displayResults(results, query);
+        }
+        
+        // Fungsi untuk menampilkan semua surah
+        function displayAllSurahs() {
+            displayResults(surahData, '');
+        }
+        
+        // Fungsi untuk menampilkan hasil
+        function displayResults(surahs, query) {
+            if (surahs.length === 0 && query) {
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <h3>🤔 Tidak ditemukan hasil</h3>
+                        <p>Tidak ada surah yang cocok dengan pencarian "${query}"</p>
+                        <p>Coba gunakan kata kunci yang berbeda</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort hasil berdasarkan pilihan
+            const sortBy = document.getElementById('sortSelect').value;
+            let sortedSurahs = [...surahs];
+            
+            switch(sortBy) {
+                case 'id':
+                    sortedSurahs.sort((a, b) => a.id - b.id);
+                    break;
+                case 'name':
+                    sortedSurahs.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'verses':
+                    sortedSurahs.sort((a, b) => b.verses - a.verses);
+                    break;
+                // 'relevance' sudah diurutkan dari algoritma
+            }
+            
+            // Generate HTML untuk setiap surah
+            let html = '';
+            
+            if (sortedSurahs.length === 0) {
+                html = `
+                    <div class="no-results">
+                        <h3>📖 Daftar Surah Al-Qur'an</h3>
+                        <p>Masukkan kata kunci untuk memulai pencarian</p>
+                    </div>
+                `;
+            } else {
+                sortedSurahs.forEach(surah => {
+                    // Highlight teks yang cocok
+                    const highlightedName = highlightText(surah.name, query);
+                    const highlightedMeaning = highlightText(surah.meaning, query);
+                    const highlightedDesc = highlightText(surah.description, query);
+                    
+                    html += `
+                        <div class="surah-item">
+                            <div class="surah-header">
+                                <div>
+                                    <div class="surah-name-arabic">${surah.arabic}</div>
+                                    <div class="surah-name-latin">${surah.id}. ${highlightedName}</div>
+                                    <div class="surah-info">
+                                        <span>📚 Arti: ${highlightedMeaning}</span>
+                                        <span>🔢 ${surah.verses} ayat</span>
+                                        <span>📍 ${surah.place}</span>
+                                    </div>
+                                </div>
+                                <div class="surah-number">${surah.id}</div>
+                            </div>
+                            <div class="surah-desc">${highlightedDesc}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            resultsContainer.innerHTML = html;
+        }
+        
+        // Fungsi untuk highlight teks yang cocok
+        function highlightText(text, query) {
+            if (!query || !text) return text;
+            
+            const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+        
+        // Escape karakter khusus untuk regex
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+    </script>
+</body>
+</html>
